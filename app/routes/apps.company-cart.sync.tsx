@@ -6,6 +6,7 @@ import {
   parseCompanyCartBody,
   setCompanyCartMetafield,
 } from "../lib/company-cart.server";
+import { assertShopAllowed } from "../lib/single-shop-session-storage.server";
 
 /**
  * App Proxy: POST https://{shop}/apps/company-cart/sync
@@ -17,9 +18,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return json({ error: "Method not allowed" }, { status: 405 });
   }
 
+  const url = new URL(request.url);
+  assertShopAllowed(url.searchParams.get("shop"));
+
   const { admin } = await authenticate.public.appProxy(request);
 
-  const url = new URL(request.url);
   const loggedInCustomerId = url.searchParams.get("logged_in_customer_id");
 
   if (!loggedInCustomerId) {

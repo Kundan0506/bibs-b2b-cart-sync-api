@@ -61,13 +61,9 @@ After changing scopes, reinstall on the dev store when prompted during `shopify 
 
 ---
 
-## Step 4 — Database (session storage)
+## Step 4 — Local development (no database)
 
-The template uses SQLite via Prisma for OAuth sessions:
-
-```powershell
-npm run setup
-```
+Single store: set `SHOPIFY_SHOP` and `SHOPIFY_ACCESS_TOKEN` in `.env` (see `docs/SINGLE-STORE.md`).
 
 ---
 
@@ -135,12 +131,10 @@ Shopify App Proxy adds query params including `logged_in_customer_id` when the b
 
 ## Step 6 — Deploy on Render (production)
 
-See **`docs/DEPLOY-RENDER.md`** for full steps (Blueprint `render.yaml`, Postgres, env vars, Shopify URLs).
+See **`docs/DEPLOY-RENDER.md`** and **`docs/SINGLE-STORE.md`** (web service only, no Postgres).
 
-Quick summary:
-
-1. Deploy repo to Render (Blueprint or manual Web Service + PostgreSQL).
-2. Set `SHOPIFY_APP_URL` to `https://<your-service>.onrender.com`.
+1. Deploy to Render (Node web service, no database).
+2. Set env vars including `SHOPIFY_SHOP` and `SHOPIFY_ACCESS_TOKEN` after install.
 3. Run `shopify app deploy` and install via **Custom distribution** on **bibs-b2b**.
 
 ---
