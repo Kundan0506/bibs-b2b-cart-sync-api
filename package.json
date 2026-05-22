@@ -9,6 +9,7 @@
     "deploy": "shopify app deploy",
     "config:use": "shopify app config use",
     "env": "shopify app env",
+    "prestart": "node scripts/ensure-build.mjs",
     "start": "remix-serve ./build/server/index.js",
     "docker-start": "npm run start",
     "render-build": "npm run build",
@@ -27,6 +28,7 @@
     "@remix-run/fs-routes": "^2.16.1",
     "@remix-run/node": "^2.16.1",
     "@remix-run/react": "^2.16.1",
+    "@remix-run/route-config": "^2.16.1",
     "@remix-run/serve": "^2.16.1",
     "@shopify/app-bridge-react": "^4.1.6",
     "@shopify/polaris": "^12.0.0",
@@ -35,11 +37,12 @@
     "isbot": "^5.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "typescript": "^5.2.2",
+    "vite": "^6.2.2",
     "vite-tsconfig-paths": "^5.0.1"
   },
   "devDependencies": {
     "@remix-run/eslint-config": "^2.16.1",
-    "@remix-run/route-config": "^2.16.1",
     "@shopify/api-codegen-preset": "^1.1.1",
     "@types/eslint": "^9.6.1",
     "@types/node": "^22.2.0",
@@ -47,9 +50,7 @@
     "@types/react-dom": "^18.2.14",
     "eslint": "^8.42.0",
     "eslint-config-prettier": "^10.0.1",
-    "prettier": "^3.2.4",
-    "typescript": "^5.2.2",
-    "vite": "^6.2.2"
+    "prettier": "^3.2.4"
   },
   "workspaces": {
     "packages": [

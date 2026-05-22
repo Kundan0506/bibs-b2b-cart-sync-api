@@ -15,9 +15,13 @@ No Postgres. No `SHOPIFY_SHOP` or `SHOPIFY_ACCESS_TOKEN`.
 
 | Field | Value |
 |--------|--------|
-| Language | **Node** |
-| Build | `npm install && npm run render-build` |
-| Start | `npm run start` |
+| Language | **Node** (not Docker) |
+| **Build Command** | `npm install && npm run build` |
+| **Start Command** | `npm run start` |
+| Root Directory | *(leave empty)* |
+
+If **Build Command** is empty, deploy fails with `ENOENT ... build/server/index.js`.  
+`prestart` runs a build if the folder is still missing, but set the build command anyway.
 
 ## Shopify
 
