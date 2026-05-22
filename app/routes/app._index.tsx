@@ -12,21 +12,21 @@ import {
 import { TitleBar } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import {
-  configuredShop,
-  isAccessTokenConfigured,
+  getInstalledShop,
+  hasOfflineSession,
 } from "../lib/single-shop-session-storage.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request);
 
   return {
-    shop: configuredShop(),
-    tokenConfigured: isAccessTokenConfigured(),
+    sessionReady: hasOfflineSession(),
+    installedShop: getInstalledShop(),
   };
 };
 
 export default function Index() {
-  const { shop, tokenConfigured } = useLoaderData<typeof loader>();
+  const { sessionReady, installedShop } = useLoaderData<typeof loader>();
 
   return (
     <Page>
@@ -34,15 +34,15 @@ export default function Index() {
       <Layout>
         <Layout.Section>
           <BlockStack gap="400">
-            {tokenConfigured ? (
+            {sessionReady ? (
               <Banner tone="success">
-                Connected to <strong>{shop}</strong>. Storefront cart sync uses
-                App Proxy <code>/apps/company-cart/sync</code>.
+                Connected to <strong>{installedShop}</strong>. Storefront sync:{" "}
+                <code>/apps/company-cart/sync</code>
               </Banner>
             ) : (
               <Banner tone="warning">
-                Set <code>SHOPIFY_ACCESS_TOKEN</code> on Render — open{" "}
-                <Link to="/app/setup">Setup</Link> after install.
+                Open <Link to="/app/setup">Setup</Link> after installing on
+                bibs-b2b.
               </Banner>
             )}
 
@@ -53,16 +53,15 @@ export default function Index() {
                 </Text>
                 <List type="bullet">
                   <List.Item>
-                    Theme POSTs cart lines to App Proxy → updates company
-                    metafield <code>custom.company_cart</code>
+                    Theme POSTs cart → company metafield{" "}
+                    <code>custom.company_cart</code>
                   </List.Item>
                   <List.Item>
-                    Other company customers load cart from that metafield
-                    (theme)
+                    No database — OAuth session kept in memory after you open
+                    this app in Admin
                   </List.Item>
                   <List.Item>
-                    No database — single store only ({shop ?? "set SHOPIFY_SHOP"}
-                    )
+                    Render env: API key, secret, app URL, scopes only
                   </List.Item>
                 </List>
               </BlockStack>

@@ -10,36 +10,14 @@ export function normalizeShop(shop: string): string {
     .toLowerCase();
 }
 
-export function configuredShop(): string | null {
-  const raw = process.env.SHOPIFY_SHOP?.trim();
-  return raw ? normalizeShop(raw) : null;
-}
-
 function offlineSessionId(shop: string): string {
   return `offline_${normalizeShop(shop)}`;
 }
 
-function sessionFromEnv(shop: string): Session | undefined {
-  const configured = configuredShop();
-  const token = process.env.SHOPIFY_ACCESS_TOKEN?.trim();
-  if (!configured || !token || normalizeShop(shop) !== configured) {
-    return undefined;
-  }
-
-  return new Session({
-    id: offlineSessionId(configured),
-    shop: configured,
-    state: "env",
-    isOnline: false,
-    accessToken: token,
-    scope: process.env.SCOPES || "",
-  });
-}
-
 /**
- * Session storage for a single store (bibs-b2b).
- * Production: SHOPIFY_SHOP + SHOPIFY_ACCESS_TOKEN env vars.
- * Install: OAuth session kept in memory until you copy the token to Render.
+ * In-memory OAuth sessions only.
+ * Requires SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_APP_URL, SCOPES on Render.
+ * After install, open the app in Admin once per deploy/restart to refresh the session.
  */
 export class SingleShopSessionStorage implements SessionStorage {
   async storeSession(session: Session): Promise<boolean> {
@@ -48,21 +26,7 @@ export class SingleShopSessionStorage implements SessionStorage {
   }
 
   async loadSession(id: string): Promise<Session | undefined> {
-    const fromMemory = memorySessions.get(id);
-    if (fromMemory) return fromMemory;
-
-    const offlineMatch = id.match(/^offline_(.+)$/);
-    if (offlineMatch) {
-      const fromEnv = sessionFromEnv(offlineMatch[1]);
-      if (fromEnv) return fromEnv;
-    }
-
-    const configured = configuredShop();
-    if (configured) {
-      return sessionFromEnv(configured);
-    }
-
-    return undefined;
+    return memorySessions.get(id);
   }
 
   async deleteSession(id: string): Promise<boolean> {
@@ -76,44 +40,20 @@ export class SingleShopSessionStorage implements SessionStorage {
   }
 
   async findSessionsByShop(shop: string): Promise<Session[]> {
-    const normalized = normalizeShop(shop);
-    const session =
-      sessionFromEnv(normalized) ??
-      memorySessions.get(offlineSessionId(normalized));
+    const session = memorySessions.get(offlineSessionId(shop));
     return session ? [session] : [];
   }
 }
 
-/** Offline token from a recent OAuth install (before copying to env). */
-export function getPendingOfflineAccessToken(): string | null {
-  const configured = configuredShop();
-  if (configured) {
-    const session = memorySessions.get(offlineSessionId(configured));
-    if (session?.accessToken && !session.isOnline) {
-      return session.accessToken;
-    }
-  }
-
+export function getInstalledShop(): string | null {
   for (const session of memorySessions.values()) {
-    if (!session.isOnline && session.accessToken) {
-      return session.accessToken;
+    if (!session.isOnline && session.shop && session.accessToken) {
+      return session.shop;
     }
   }
-
   return null;
 }
 
-export function assertShopAllowed(shop: string | null): void {
-  if (!shop) return;
-  const configured = configuredShop();
-  if (!configured) return;
-  if (normalizeShop(shop) !== configured) {
-    throw new Response("This app is only configured for one store.", {
-      status: 403,
-    });
-  }
-}
-
-export function isAccessTokenConfigured(): boolean {
-  return Boolean(process.env.SHOPIFY_ACCESS_TOKEN?.trim());
+export function hasOfflineSession(): boolean {
+  return getInstalledShop() !== null;
 }

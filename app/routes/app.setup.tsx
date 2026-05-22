@@ -8,48 +8,44 @@ import {
   BlockStack,
   Banner,
   List,
-  Box,
 } from "@shopify/polaris";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import {
-  configuredShop,
-  getPendingOfflineAccessToken,
-  isAccessTokenConfigured,
+  getInstalledShop,
+  hasOfflineSession,
 } from "../lib/single-shop-session-storage.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request);
 
   return {
-    shop: configuredShop(),
-    tokenConfigured: isAccessTokenConfigured(),
-    pendingToken: getPendingOfflineAccessToken(),
+    sessionReady: hasOfflineSession(),
+    installedShop: getInstalledShop(),
   };
 };
 
 export default function Setup() {
-  const { shop, tokenConfigured, pendingToken } =
-    useLoaderData<typeof loader>();
+  const { sessionReady, installedShop } = useLoaderData<typeof loader>();
 
   return (
     <Page>
-      <TitleBar title="Setup (single store)" />
+      <TitleBar title="Setup" />
       <Layout>
         <Layout.Section>
           <BlockStack gap="400">
-            {tokenConfigured ? (
+            {sessionReady ? (
               <Banner tone="success">
                 <p>
-                  <strong>SHOPIFY_ACCESS_TOKEN</strong> is set. App Proxy sync
-                  should work for <strong>{shop}</strong>.
+                  App is connected to <strong>{installedShop}</strong>. App
+                  Proxy sync can run for this store.
                 </p>
               </Banner>
             ) : (
               <Banner tone="warning">
                 <p>
-                  Add <strong>SHOPIFY_ACCESS_TOKEN</strong> to Render (or .env)
-                  after install.
+                  Install the app on bibs-b2b, then open this app in Admin to
+                  complete OAuth. After a Render redeploy, open the app again.
                 </p>
               </Banner>
             )}
@@ -57,44 +53,27 @@ export default function Setup() {
             <Card>
               <BlockStack gap="300">
                 <Text as="h2" variant="headingMd">
-                  Environment variables (Render)
+                  Render environment variables (only these four)
                 </Text>
                 <List type="bullet">
                   <List.Item>
-                    <code>SHOPIFY_SHOP</code> ={" "}
-                    <code>{shop ?? "bibs-b2b.myshopify.com"}</code>
+                    <code>SHOPIFY_API_KEY</code>
                   </List.Item>
                   <List.Item>
-                    <code>SHOPIFY_ACCESS_TOKEN</code> = offline Admin API token
-                    (see below)
+                    <code>SHOPIFY_API_SECRET</code>
                   </List.Item>
                   <List.Item>
-                    <code>SHOPIFY_API_KEY</code>, <code>SHOPIFY_API_SECRET</code>
-                    , <code>SCOPES</code>, <code>SHOPIFY_APP_URL</code>
+                    <code>SHOPIFY_APP_URL</code> — your Render service URL
+                  </List.Item>
+                  <List.Item>
+                    <code>SCOPES</code> —{" "}
+                    <code>
+                      read_customers,write_customers,read_companies,write_companies
+                    </code>
                   </List.Item>
                 </List>
               </BlockStack>
             </Card>
-
-            {pendingToken && !tokenConfigured && (
-              <Card>
-                <BlockStack gap="300">
-                  <Text as="h2" variant="headingMd">
-                    Copy this token now
-                  </Text>
-                  <Text as="p" variant="bodyMd">
-                    This was saved during install. Paste it as{" "}
-                    <code>SHOPIFY_ACCESS_TOKEN</code> in Render, then redeploy.
-                    It is only shown while this server instance is running.
-                  </Text>
-                  <Box padding="300" background="bg-surface-secondary" borderRadius="200">
-                    <pre style={{ margin: 0, wordBreak: "break-all" }}>
-                      {pendingToken}
-                    </pre>
-                  </Box>
-                </BlockStack>
-              </Card>
-            )}
           </BlockStack>
         </Layout.Section>
       </Layout>

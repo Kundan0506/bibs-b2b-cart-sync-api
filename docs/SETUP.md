@@ -63,7 +63,7 @@ After changing scopes, reinstall on the dev store when prompted during `shopify 
 
 ## Step 4 — Local development (no database)
 
-Single store: set `SHOPIFY_SHOP` and `SHOPIFY_ACCESS_TOKEN` in `.env` (see `docs/SINGLE-STORE.md`).
+Single store: only four env vars in `.env` (see `docs/SINGLE-STORE.md`).
 
 ---
 
@@ -134,7 +134,7 @@ Shopify App Proxy adds query params including `logged_in_customer_id` when the b
 See **`docs/DEPLOY-RENDER.md`** and **`docs/SINGLE-STORE.md`** (web service only, no Postgres).
 
 1. Deploy to Render (Node web service, no database).
-2. Set env vars including `SHOPIFY_SHOP` and `SHOPIFY_ACCESS_TOKEN` after install.
+2. Set the four Shopify env vars on Render; open the app in Admin after install.
 3. Run `shopify app deploy` and install via **Custom distribution** on **bibs-b2b**.
 
 ---
